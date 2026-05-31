@@ -1,0 +1,12 @@
+body{
+    background:#111;
+    color:white;
+    text-align:center;
+    font-family:Arial;
+}
+
+#slot{
+    margin:20px auto;
+    font-size:40px;
+    line-height:60px;
+}
