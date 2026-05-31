@@ -1,69 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Slot Test</title>
-
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <style>
-        body{
-            background:#111;
-            color:white;
-            font-family:Arial;
-            padding:20px;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BoomSpin Слот</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
 </head>
 <body>
-
-<h1>🎰 Mini App Test</h1>
-
-<div id="info">Загрузка...</div>
-
-<script>
-const supabaseUrl = "https://otcngdszonarjrxubjpm.supabase.co"
-    
-const supabaseKey = "sb_publishable_0zUPLPf_-q_KmqXpNax3vw_C4HxyNNM";
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    
-async function initUser() {
-  const tg = window.Telegram.WebApp;
-  const user = tg.initDataUnsafe.user;
-
-  const { data, error } = await supabase
-    .from("users")
-    .upsert({
-      id: user.id,
-      username: user.username || user.first_name,
-    });
-
-  console.log("USER SAVED:", data, error);
-}
-initUser();
-const tg = window.Telegram.WebApp;
-
-tg.expand();
-
-const user = tg.initDataUnsafe.user;
-
-if(user){
-
-    document.getElementById("info").innerHTML = `
-        <b>Имя:</b> ${user.first_name}<br>
-        <b>ID:</b> ${user.id}<br>
-        <b>Username:</b> ${user.username || "нет"}<br>
-    `;
-
-}else{
-
-    document.getElementById("info").innerHTML =
-        "Данные Telegram не получены";
-
-}
-<button onclick="spin()">SPIN 🎰</button>
-</script>
-
+    <div class="container">
+        <div class="balance">
+            <span>💰 Баланс: </span><span id="balance">1000</span>
+        </div>
+        <div class="slot-machine">
+            <div class="reels">
+                <div class="reel" id="reel1">🍒</div>
+                <div class="reel" id="reel2">🍒</div>
+                <div class="reel" id="reel3">🍒</div>
+            </div>
+            <button id="spinButton" class="spin-btn">🎰 Крутить (10)</button>
+        </div>
+        <div id="message" class="message"></div>
+    </div>
+    <script src="app.js"></script>
 </body>
 </html>
