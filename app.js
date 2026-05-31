@@ -1,4 +1,13 @@
 // Инициализация WebApp
+let tg;
+if (window.Telegram && window.Telegram.WebApp) {
+    tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.MainButton.hide();
+} else {
+    console.warn("Telegram WebApp not found, using mock");
+    tg = { sendData: (data) => console.log("Mock sendData:", data), ready: () => {} };
+}
 let tg = window.Telegram.WebApp;
 tg.expand(); // Разворачиваем на весь экран
 tg.MainButton.hide(); // Прячем стандартную кнопку
