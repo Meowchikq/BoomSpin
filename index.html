@@ -1,32 +1,50 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<link rel="stylesheet" href="style.css">
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-</head>
+    <meta charset="UTF-8">
+    <title>Slot Test</title>
 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        body{
+            background:#111;
+            color:white;
+            font-family:Arial;
+            padding:20px;
+        }
+    </style>
+</head>
 <body>
 
-<h2>🎰 Slot Demo</h2>
+<h1>🎰 Mini App Test</h1>
 
-<div id="balance">
-Баланс: 1000
-</div>
+<div id="info">Загрузка...</div>
 
-<div id="slot"></div>
+<script>
 
-<input
-id="bet"
-type="number"
-value="10"
-/>
+const tg = window.Telegram.WebApp;
 
-<button onclick="spin()">
-SPIN
-</button>
+tg.expand();
 
-<script src="app.js"></script>
+const user = tg.initDataUnsafe.user;
+
+if(user){
+
+    document.getElementById("info").innerHTML = `
+        <b>Имя:</b> ${user.first_name}<br>
+        <b>ID:</b> ${user.id}<br>
+        <b>Username:</b> ${user.username || "нет"}<br>
+    `;
+
+}else{
+
+    document.getElementById("info").innerHTML =
+        "Данные Telegram не получены";
+
+}
+
+</script>
 
 </body>
 </html>
