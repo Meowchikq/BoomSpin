@@ -26,7 +26,22 @@
 const supabaseUrl = "https://otcngdszonarjrxubjpm.supabase.co"
     
 const supabaseKey = "sb_publishable_0zUPLPf_-q_KmqXpNax3vw_C4HxyNNM";
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    
+async function initUser() {
+  const tg = window.Telegram.WebApp;
+  const user = tg.initDataUnsafe.user;
 
+  const { data, error } = await supabase
+    .from("users")
+    .upsert({
+      id: user.id,
+      username: user.username || user.first_name,
+    });
+
+  console.log("USER SAVED:", data, error);
+}
+initUser();
 const tg = window.Telegram.WebApp;
 
 tg.expand();
@@ -47,7 +62,7 @@ if(user){
         "Данные Telegram не получены";
 
 }
-
+<button onclick="spin()">SPIN 🎰</button>
 </script>
 
 </body>
