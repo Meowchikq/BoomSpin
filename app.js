@@ -4,61 +4,48 @@ const userId =
 tg.initDataUnsafe.user?.id || 1;
 
 async function spin() {
+  const tg = window.Telegram.WebApp;
+  const userId = tg.initDataUnsafe.user.id;
 
-    const bet =
-    Number(
-        document.getElementById("bet").value
-    );
+  const bet = 10;
 
-    const response =
-    await fetch(
-        "https://YOUR_SERVER/spin",
-        {
-            method:"POST",
-            headers:{
-                "Content-Type":
-                "application/json"
-            },
-            body:JSON.stringify({
-                userId,
-                bet
-            })
-        }
-    );
+  // 1. получаем пользователя
+  const { data: user } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", userId)
+    .single();
 
-    const data =
-    await response.json();
+  if (!user || user.balance < bet) {
+    alert("❌ Нет денег");
+    return;
+  }
 
-    if(data.error) {
+  // 2. генерируем слот
+  const symbols = ["🍒", "🍋", "💎", "7️⃣"];
 
-        alert(data.error);
-        return;
-    }
+  const r1 = symbols[Math.floor(Math.random() * symbols.length)];
+  const r2 = symbols[Math.floor(Math.random() * symbols.length)];
+  const r3 = symbols[Math.floor(Math.random() * symbols.length)];
 
-    let html = "";
+  const result = r1 + r2 + r3;
 
-    data.reels.forEach(row=>{
+  // 3. считаем выигрыш
+  let win = 0;
 
-        html += row.join(" ");
+  if (r1 === r2 && r2 === r3) {
+    win = bet * 5;
+  } else if (r1 === r2 || r2 === r3 || r1 === r3) {
+    win = bet * 2;
+  }
 
-        html += "<br>";
-    });
+  // 4. обновляем баланс
+  const newBalance = user.balance - bet + win;
 
-    document
-        .getElementById("slot")
-        .innerHTML = html;
+  await supabase
+    .from("users")
+    .update({ balance: newBalance })
+    .eq("id", userId);
 
-    document
-        .getElementById("balance")
-        .innerText =
-        "Баланс: " +
-        data.balance;
-
-    if(data.win > 0) {
-
-        alert(
-            "Выигрыш: " +
-            data.win
-        );
-    }
+  alert(`Result: ${result}\nWin: ${win}\nBalance: ${newBalance}`);
 }
