@@ -1,18 +1,19 @@
-// Инициализация WebApp
+// --- Инициализация Telegram WebApp (безопасно) ---
 let tg;
-if (window.Telegram && window.Telegram.WebApp) {
+if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
     tg = window.Telegram.WebApp;
     tg.expand();
     tg.MainButton.hide();
 } else {
-    console.warn("Telegram WebApp not found, using mock");
-    tg = { sendData: (data) => console.log("Mock sendData:", data), ready: () => {} };
+    // Запуск в обычном браузере – просто заглушка
+    console.warn("Telegram WebApp not found, running in browser mode");
+    tg = {
+        sendData: (data) => console.log("Mock sendData:", data),
+        ready: () => {}
+    };
 }
-let tg = window.Telegram.WebApp;
-tg.expand(); // Разворачиваем на весь экран
-tg.MainButton.hide(); // Прячем стандартную кнопку
 
-// Игровые переменные
+// --- Игровые переменные ---
 let balance = 1000;
 const spinCost = 10;
 const reelElements = [
@@ -74,30 +75,34 @@ function checkWin(results) {
     updateUI();
     messageDiv.innerText = winMessage;
 
-    // --- ОТПРАВКА ДАННЫХ В БОТА ---
-    // Формируем объект с результатом игры
+    // Отправка данных в бота (только если есть настоящий Telegram WebApp)
     const gameResult = {
         bet: spinCost,
         result: results.join(''),
         win: winAmount,
         new_balance: balance
     };
-    // Отправляем данные боту
     tg.sendData(JSON.stringify(gameResult));
 }
 
-spinButton.addEventListener('click', () => {
-    if (balance >= spinCost) {
-        balance -= spinCost;
-        updateUI();
-        messageDiv.innerText = '🎲 Крутим...';
-        spinButton.disabled = true;
-        spinReels();
-        setTimeout(() => { spinButton.disabled = false; }, 600);
-    } else {
-        messageDiv.innerText = '❌ Недостаточно средств! Обновите страницу.';
-    }
-});
+// --- Назначение обработчика кнопки ---
+if (spinButton) {
+    spinButton.addEventListener('click', () => {
+        if (balance >= spinCost) {
+            balance -= spinCost;
+            updateUI();
+            messageDiv.innerText = '🎲 Крутим...';
+            spinButton.disabled = true;
+            spinReels();
+            setTimeout(() => { spinButton.disabled = false; }, 600);
+        } else {
+            messageDiv.innerText = '❌ Недостаточно средств! Обновите страницу.';
+        }
+    });
+} else {
+    console.error("Кнопка #spinButton не найдена в DOM");
+}
 
+// --- Завершаем инициализацию ---
 updateUI();
 tg.ready();
