@@ -1,51 +1,94 @@
-const tg = window.Telegram.WebApp;
+// Инициализация WebApp
+let tg = window.Telegram.WebApp;
+tg.expand(); // Разворачиваем на весь экран
+tg.MainButton.hide(); // Прячем стандартную кнопку
 
-const userId =
-tg.initDataUnsafe.user?.id || 1;
+// Игровые переменные
+let balance = 1000;
+const spinCost = 10;
+const reelElements = [
+    document.getElementById('reel1'),
+    document.getElementById('reel2'),
+    document.getElementById('reel3')
+];
+const balanceSpan = document.getElementById('balance');
+const spinButton = document.getElementById('spinButton');
+const messageDiv = document.getElementById('message');
 
-async function spin() {
-  const tg = window.Telegram.WebApp;
-  const userId = tg.initDataUnsafe.user.id;
+// Символы и их множители
+const symbols = ['🍒', '🍋', '🍊', '💎', '7️⃣'];
+const multipliers = { '🍒': 2, '🍋': 3, '🍊': 4, '💎': 10, '7️⃣': 20 };
 
-  const bet = 10;
-
-  // 1. получаем пользователя
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  if (!user || user.balance < bet) {
-    alert("❌ Нет денег");
-    return;
-  }
-
-  // 2. генерируем слот
-  const symbols = ["🍒", "🍋", "💎", "7️⃣"];
-
-  const r1 = symbols[Math.floor(Math.random() * symbols.length)];
-  const r2 = symbols[Math.floor(Math.random() * symbols.length)];
-  const r3 = symbols[Math.floor(Math.random() * symbols.length)];
-
-  const result = r1 + r2 + r3;
-
-  // 3. считаем выигрыш
-  let win = 0;
-
-  if (r1 === r2 && r2 === r3) {
-    win = bet * 5;
-  } else if (r1 === r2 || r2 === r3 || r1 === r3) {
-    win = bet * 2;
-  }
-
-  // 4. обновляем баланс
-  const newBalance = user.balance - bet + win;
-
-  await supabase
-    .from("users")
-    .update({ balance: newBalance })
-    .eq("id", userId);
-
-  alert(`Result: ${result}\nWin: ${win}\nBalance: ${newBalance}`);
+function updateUI() {
+    balanceSpan.innerText = balance;
+    spinButton.innerText = `🎰 Крутить (${spinCost})`;
 }
+
+function getRandomSymbol() {
+    return symbols[Math.floor(Math.random() * symbols.length)];
+}
+
+function spinReels() {
+    let spinInterval = setInterval(() => {
+        reelElements.forEach(reel => { reel.innerText = getRandomSymbol(); });
+    }, 50);
+    setTimeout(() => {
+        clearInterval(spinInterval);
+        const results = reelElements.map(reel => {
+            const symbol = getRandomSymbol();
+            reel.innerText = symbol;
+            return symbol;
+        });
+        checkWin(results);
+    }, 500);
+}
+
+function checkWin(results) {
+    const [r1, r2, r3] = results;
+    let winAmount = 0;
+    let winMessage = '';
+
+    if (r1 === r2 && r2 === r3) {
+        winAmount = spinCost * multipliers[r1];
+        winMessage = `🎉 ДЖЕКПОТ! Три ${r1} - Вы выиграли ${winAmount} 🎉`;
+    } else if (r1 === r2 || r2 === r3 || r1 === r3) {
+        let matchedSymbol = r1 === r2 ? r1 : (r2 === r3 ? r2 : r3);
+        winAmount = spinCost * (multipliers[matchedSymbol] / 2);
+        winMessage = `✨ Выигрыш! Два ${matchedSymbol} - +${winAmount} ✨`;
+    } else {
+        winMessage = `😔 Повезёт в следующий раз! Выпало: ${r1} ${r2} ${r3}`;
+    }
+
+    if (winAmount > 0) {
+        balance += winAmount;
+    }
+    updateUI();
+    messageDiv.innerText = winMessage;
+
+    // --- ОТПРАВКА ДАННЫХ В БОТА ---
+    // Формируем объект с результатом игры
+    const gameResult = {
+        bet: spinCost,
+        result: results.join(''),
+        win: winAmount,
+        new_balance: balance
+    };
+    // Отправляем данные боту
+    tg.sendData(JSON.stringify(gameResult));
+}
+
+spinButton.addEventListener('click', () => {
+    if (balance >= spinCost) {
+        balance -= spinCost;
+        updateUI();
+        messageDiv.innerText = '🎲 Крутим...';
+        spinButton.disabled = true;
+        spinReels();
+        setTimeout(() => { spinButton.disabled = false; }, 600);
+    } else {
+        messageDiv.innerText = '❌ Недостаточно средств! Обновите страницу.';
+    }
+});
+
+updateUI();
+tg.ready();
